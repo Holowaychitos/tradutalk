@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Listen</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+    body {
+      font-family: 'Helvetica', sans-serif;
+      background: #292929;
+      font-size: 16px;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex-align: stretch;
+      -webkit-tap-highlight-color:rgba(0,0,0,0);
+    }
+    #messages {
+      padding: 1em;
+      flex: 1;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    .message {
+      padding: 0.618em 1em;
+      line-height: 1em;
+      background: #363636;
+      border-radius: 0.5em;
+      color: #fff;
+      text-shadow: rgba(0, 0, 0, 0.1) 0 -1px 0;
+      margin-bottom: 1em;
+      display: inline-block;
+      box-shadow: rgba(0,0,0,.1) 0 1px 0, rgba(0,0,0,.05) 0 2px 8px;
+    }
+    .authorSELF {
+      text-align: right;
+      margin-right: 2em;
+    }
+
+    .containerSELF {
+      text-align: right;
+    }
+    .containerOTHER {
+      text-align: left;
+    }
+
+    .title {
+      background: linear-gradient(#3f3f3f, #363636), #3f3f3f;
+      border-top: 1px solid #565656;
+      border-bottom: 1px solid #1c1c1c;
+      padding: 1em;
+      color: #fff;
+      text-shadow: rgba(0,0,0,.5) 0 -1px 0;
+    }
+    .title div {
+      text-align: center;
+    }
+    .title .status {
+      padding-top: 0.1em;
+      font-size: 0.9em;
+      color: #999;
+    }
+
+    .text {
+      background: #444;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flex;
+      display: -o-flex;
+      display: flex;
+      background: #292929;
+      border-top: 1px solid #1e1e1e;
+    }
+
+    .text form {
+      flex: 1;
+    }
+
+    .text input {
+      font-size: 0.8em;
+      flex: 1;
+      display: block;
+      border: none;
+      height: 3rem;
+      line-height: 3rem;
+      padding: 0 1rem;
+      background: #292929;
+      color: #aaa;
+      width: 100%;
+    }
+
+    .text input:focus {
+      outline: none;
+    }
+
+    .text .wave {
+      width: 12vw;
+      background-size: 12em;
+      background-position: 0 center;
+      background-repeat: repeat-x;
+    }
+
+    .text .wave::before {
+      content: '';
+      display: block;
+      position: absolute;
+      width: 100%;
+      top: 50%;
+      left: 0;
+      height: 0.2em;
+      margin-top: -0.1em;
+      background: #50e3c2;
+    }
+
+    .text .wave::after {
+      content: '';
+      display: block;
+      position: absolute;
+      height: 100%;
+      width: 0.5em;
+      background: linear-gradient(to right, rgba(41,41,41, 1), rgba(41, 41, 41, 0));
+    }
+
+    .text .wave.animate {
+      background-image: url('/static/wave.png');
+      -webkit-animation: waveForm 3s infinite linear, waveHeight 0.3s infinite alternate;
+      transform: scaleY(1);
+    }
+
+    @-webkit-keyframes waveForm {
+      0%   {
+        background-position: 0 center;
+        transform: scaleY(1.2);
+      }
+      100% {
+        background-position: -12em center;
+        transform: scaleY(0.8);
+      }
+    }
+
+    @-webkit-keyframes waveHeight {
+      0%   {
+        transform: scaleY(1.2);
+      }
+      100% {
+        transform: scaleY(0.7);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="title">
+    <div>Tradutalk Demo</div>
+    <div class="status">online</div>
+  </div>
+  <div id="messages"></div>
+
+  <div class="text">
+    <form action="" id="form" onsubmit="onSubmitForm(event)">
+      <input id="messageInput" type="text" placeholder="Habla o escribe tu respuesta">
+    </form>
+    <div class="wave" id="wave"></div>
+  </div>
+
+  <script src="/static/randomColor.js"></script>
+  <script src="http://192.168.1.122:4567/socket.io/socket.io.js"></script>
+  <script>
+    var USEONLYFINAL = true;
+    var USERNAME = randomColor({
+      luminosity: 'dark'
+    });
+
+    var socket = io();
+
+    socket.on('chat', function(msg){
+      console.log('SOCKET', msg);
+      putMessage(msg.message, msg.messageId, msg.author, true);
+    });
+
+    var eventCount = 0;
+    var $messages =  document.getElementById('messages');
+    var $wave = document.getElementById('wave');
+
+    function putMessage(message, messageId, author, force) {
+      var date = new Date().getTime();
+
+      if (!message) return;
+
+      var mEl = document.getElementById('m' + messageId);
+
+      var containerClass = author === USERNAME ? 'containerSELF' : 'containerOTHER';
+
+      if (mEl && !force) {
+        mEl.innerHTML = message;
+      } else {
+        var authorClass = (author === USERNAME) ? 'SELF' : 'OTHER';
+        $messages.innerHTML = $messages.innerHTML + '<div class="' + containerClass + '"><div id="m' + messageId + '" class="message author' + authorClass + '" style="background-color:' + author + ' ">' +   message + '</div></div>';
+      }
+    }
+
+    var transcript;
+    var interimTrascript;
+
+    var recognition = new webkitSpeechRecognition();
+    recognition.lang = 'es-MX'
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onspeechstart = function() {
+      $wave.classList.add('animate');
+      console.log('Speech START')
+    }
+
+    recognition.onspeechend = function() {
+      $wave.classList.remove('animate');
+      console.log('Speech END')
+    }
+
+    recognition.onend = function() {
+      recognition.start();
+    }
+
+    function onSubmitForm(event) {
+      event.preventDefault();
+
+      var transcript = event.target[0].value;
+      eventCount++;
+
+      socket.emit('chat', {
+        message: transcript,
+        messageId: eventCount,
+        author: USERNAME
+      });
+
+      putMessage(transcript, eventCount, USERNAME, true);
+
+      event.target[0].value = ''
+    }
+
+    recognition.onresult = function(event) {
+      interimResults = transcript;
+      transcript = '';
+
+      for (var i = event.resultIndex; i < event.results.length; ++i) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      console.log({interimResults, transcript})
+
+      putMessage(transcript, eventCount, USERNAME)
+
+      if (transcript === interimResults) {
+        console.log('FINAL RESULT', transcript);
+        eventCount++;
+
+        socket.emit('chat', {
+          message: transcript,
+          messageId: eventCount,
+          author: USERNAME
+        });
+
+        recognition.abort();
+      }
+    }
+
+    recognition.start();
+  </script>
+
+</body>
+</html>
