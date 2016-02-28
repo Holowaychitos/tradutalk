@@ -7,7 +7,7 @@ app.get('/', function(req, res){
   res.sendfile('index.html');
 });
 
-app.use('/static', express.static('public'));
+app.use('/public', express.static('public'));
 
 io.on('connection', function(socket){
   console.log('a user connected');
