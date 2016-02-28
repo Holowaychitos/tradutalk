@@ -167,7 +167,7 @@
   <div id="messages"></div>
 
   <div class="text">
-    <form action="" id="form" onsubmit="onSubmitForm(event)">
+    <form id="form" onsubmit="onSubmitForm(event)">
       <input id="messageInput" type="text" placeholder="Habla o escribe tu respuesta">
     </form>
     <div class="wave" id="wave"></div>
@@ -245,7 +245,9 @@
 
       putMessage(transcript, eventCount, USERNAME, true);
 
-      event.target[0].value = ''
+      event.target[0].value = '';
+
+      return false;
     }
 
     recognition.onresult = function(event) {
